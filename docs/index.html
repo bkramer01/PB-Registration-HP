@@ -19,8 +19,12 @@
   .days input { display:none; }
   .days input:checked + span { color:var(--accent); font-weight:600; }
   .days label:has(input:checked) { border-color:var(--accent); }
+  .courts { display:flex; flex-direction:column; gap:6px; }
+  .courts button { text-align:left; background:transparent; color:var(--ink); border-color:var(--line); font-weight:400; }
+  .courts button.on { border-color:var(--accent); color:var(--accent); font-weight:600; }
   .row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
   label.f { display:block; font-size:.9rem; color:var(--muted); }
+  label.check { display:block; margin-top:12px; }
   input[type=time], select { width:100%; margin-top:4px; padding:8px; font:inherit; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:8px; }
   pre { background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:12px; overflow-x:auto; font-size:.85rem; margin:12px 0; }
   .btns { display:flex; gap:8px; flex-wrap:wrap; }
@@ -33,7 +37,7 @@
 <body>
 <main>
   <h1>Pickleball Booker</h1>
-  <p class="sub">Club Pickle &amp; Padel, Highland Park. Books a court automatically at midnight, 10 days ahead.</p>
+  <p class="sub">Club Pickle &amp; Padel, Highland Park. Books a court automatically at midnight, 10 days ahead. This page starts from the usual settings, not your saved ones, so set everything you want before saving.</p>
 
   <section>
     <h2>1. Pick days and time</h2>
@@ -47,45 +51,36 @@
   </section>
 
   <section>
-    <h2>2. Save to GitHub</h2>
-    <p class="muted">Copy these settings, open the settings file on GitHub, replace everything in it, and click "Commit changes".</p>
+    <h2>2. Pick courts (optional)</h2>
+    <p class="muted">Click courts in the order you prefer them. Click again to remove one. If you pick none, the first free court is booked.</p>
+    <div class="courts" id="courts"></div>
+    <label class="check"><input type="checkbox" id="only"> Only book these courts. If none is free, book nothing.</label>
+  </section>
+
+  <section>
+    <h2>3. Save</h2>
+    <p class="muted">Copy these settings, open <code>config.json</code> in the PB-Registration-HP folder on the PC that runs the booker, replace everything in it, and save. The next nightly run uses them.</p>
     <pre id="out"></pre>
     <div class="btns">
       <button id="copy">Copy settings</button>
-      <a class="btn alt" id="edit" target="_blank" rel="noopener">Open settings file</a>
     </div>
   </section>
 
   <section>
-    <h2>3. Test it</h2>
-    <p class="muted">Open the workflow, click "Run workflow", and leave "Dry run" ticked. It logs in and finds the court without reserving it.</p>
-    <div class="btns"><a class="btn alt" id="run" target="_blank" rel="noopener">Run a test</a></div>
+    <h2>4. Test it</h2>
+    <p class="muted">In the PB-Registration-HP folder, run <code>npm run dry-run:local</code>. It logs in and finds the court without reserving it.</p>
   </section>
 
   <section>
     <h2>Using your own login</h2>
     <ol>
-      <li>Make your own copy of this project on GitHub (ask Brad for access, then click "Use this template" or "Fork").</li>
-      <li>In your copy, go to <a id="secrets" target="_blank" rel="noopener">Settings, then Secrets</a> and add <code>PLAN2PLAY_USERNAME</code> and <code>PLAN2PLAY_PASSWORD</code>.</li>
-      <li>For email results, also add <code>MAIL_TO</code>, <code>SMTP_USERNAME</code> (a Gmail address) and <code>SMTP_PASSWORD</code> (a Gmail app password).</li>
-      <li>Open the Actions tab once and enable workflows. Then use the steps above in your copy.</li>
+      <li>Copy this project to your own Windows PC (ask Brad for access) and follow "Running on a Windows PC" in <code>README.md</code>.</li>
+      <li>Put your own Plan2Play login in the <code>.env</code> file there.</li>
+      <li>For email results, also fill in <code>MAIL_TO</code>, <code>SMTP_USERNAME</code> (a Gmail address) and <code>SMTP_PASSWORD</code> (a Gmail app password).</li>
     </ol>
   </section>
 </main>
 <script>
-  // Work out which repo this page belongs to (GitHub Pages: owner.github.io/repo/).
-  const params = new URLSearchParams(location.search);
-  let repo = params.get('repo') || 'bkramer01/PB-Registration-HP';
-  if (location.hostname.endsWith('.github.io')) {
-    const owner = location.hostname.split('.')[0];
-    const name = location.pathname.split('/').filter(Boolean)[0];
-    if (name) repo = `${owner}/${name}`;
-  }
-  const gh = `https://github.com/${repo}`;
-  document.getElementById('edit').href = `${gh}/edit/main/config.json`;
-  document.getElementById('run').href = `${gh}/actions/workflows/book.yml`;
-  document.getElementById('secrets').href = `${gh}/settings/secrets/actions`;
-
   const ALL = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const chosen = new Set(['Mon', 'Wed', 'Fri']);
   const daysEl = document.getElementById('days');
@@ -95,12 +90,36 @@
     daysEl.appendChild(l);
   });
 
+  // The names the site uses. Preferences are saved as "Court N".
+  const COURTS = ['First Bank Court 1', 'Banner Kitchen & Bath Court 2', 'AARP Court 3', 'Studio 41 Court 4', 'HP Bank & Trust Court 5', 'Delos Therapy Court 6', 'Porsche Exchange Court 7', 'Audi Exchange Court 8', 'Chevy Exchange Court 9', 'Etruscan Court 10'];
+  const shortName = (name) => /Court \d+$/.exec(name)[0];
+  const ranked = [];
+  const courtsEl = document.getElementById('courts');
+  function drawCourts() {
+    courtsEl.innerHTML = '';
+    COURTS.forEach((name) => {
+      const rank = ranked.indexOf(shortName(name));
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = rank >= 0 ? `${rank + 1}. ${name}` : name;
+      b.className = rank >= 0 ? 'on' : '';
+      b.onclick = () => {
+        if (rank >= 0) ranked.splice(rank, 1); else ranked.push(shortName(name));
+        drawCourts();
+        render();
+      };
+      courtsEl.appendChild(b);
+    });
+  }
+
   function render() {
     const days = [...daysEl.querySelectorAll('input:checked')].map((i) => i.value);
     const cfg = {
       days,
       startTime: document.getElementById('start').value || '09:30',
       durationMinutes: Number(document.getElementById('dur').value),
+      preferredCourts: ranked,
+      onlyPreferred: document.getElementById('only').checked,
       daysAhead: 10,
       timezone: 'America/Chicago',
       opensAt: '00:00',
@@ -114,16 +133,8 @@
     catch { e.target.textContent = 'Select the text and copy it'; }
     setTimeout(() => (e.target.textContent = 'Copy settings'), 2000);
   };
+  drawCourts();
   render();
-
-  // Load the current settings from the repo if it's public.
-  fetch(`https://raw.githubusercontent.com/${repo}/main/config.json`).then((r) => r.ok ? r.json() : null).then((c) => {
-    if (!c) return;
-    daysEl.querySelectorAll('input').forEach((i) => (i.checked = c.days.includes(i.value)));
-    document.getElementById('start').value = c.startTime;
-    document.getElementById('dur').value = String(c.durationMinutes);
-    render();
-  }).catch(() => {});
 </script>
 </body>
 </html>

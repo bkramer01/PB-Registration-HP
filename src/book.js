@@ -14,6 +14,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { targetFor, msUntilOpen, endTime, weekdayOf, inRunWindow } from './schedule.js';
 import { login, findSlot, reserve, BookingLimitError } from './plan2play.js';
+import { notify } from './notify.js';
 
 const args = process.argv.slice(2);
 const flag = (n) => args.includes(n);
@@ -41,7 +42,13 @@ async function main() {
     target = targetFor(new Date(), config);
   }
   const startTime = opt('--time') || config.startTime;
-  const slot = { date: target.date, startTime, endTime: endTime(startTime, config.durationMinutes) };
+  const slot = {
+    date: target.date,
+    startTime,
+    endTime: endTime(startTime, config.durationMinutes),
+    preferredCourts: config.preferredCourts,
+    onlyPreferred: config.onlyPreferred,
+  };
   const label = `${target.weekday} ${slot.date} ${slot.startTime}-${slot.endTime}`;
 
   if (!target.wanted) {
@@ -97,6 +104,7 @@ async function finish(result) {
   const md = `**Pickleball booking: ${result.status}**\n\n${result.label}\n\n${result.message}\n`;
   await writeFile(`${outDir}/result.md`, md);
   console.log(md);
+  await notify(result, md);
   if (result.status === 'error') process.exitCode = 1;
 }
 

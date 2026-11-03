@@ -48,7 +48,23 @@ test('run window keeps the right cron and drops the other', () => {
   assert.equal(inRunWindow(new Date('2026-11-06T06:12:00Z'), config), true);
 });
 
-import { buttonTime, cardTime, cardDate, durationLabel } from '../src/plan2play.js';
+import { buttonTime, cardTime, cardDate, durationLabel, pickCourt } from '../src/plan2play.js';
+test('courts are picked by preference, then whatever is free', () => {
+  const free = ['First Bank Court 1', 'Audi Exchange Court 8', 'Etruscan Court 10'];
+  assert.equal(pickCourt(free, ['Court 10', 'Court 8']), 'Etruscan Court 10');
+  assert.equal(pickCourt(free, ['Court 7', 'Court 8']), 'Audi Exchange Court 8');
+  assert.equal(pickCourt(free, ['Court 1']), 'First Bank Court 1');
+  assert.equal(pickCourt(free, ['Audi Exchange Court 8']), 'Audi Exchange Court 8');
+  assert.equal(pickCourt(free, ['Court 7']), 'First Bank Court 1');
+  assert.equal(pickCourt(free), 'First Bank Court 1');
+  assert.equal(pickCourt([], ['Court 7']), null);
+});
+test('onlyPreferred refuses other courts, unless no preference is set', () => {
+  const free = ['First Bank Court 1', 'Audi Exchange Court 8'];
+  assert.equal(pickCourt(free, ['Court 7'], true), null);
+  assert.equal(pickCourt(free, ['Court 7', 'Court 8'], true), 'Audi Exchange Court 8');
+  assert.equal(pickCourt(free, [], true), 'First Bank Court 1');
+});
 test('times and dates match the wording on the Plan2Play wizard', () => {
   assert.equal(buttonTime('09:30'), '9:30 AM');
   assert.equal(buttonTime('12:00'), '12 PM');

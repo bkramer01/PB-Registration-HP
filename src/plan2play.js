@@ -48,6 +48,19 @@ export function durationLabel(startTime, endTime) {
   return label;
 }
 
+// Picks from the free courts, best preference first. A preference is the end of a court's
+// name, so "Court 7" matches "Porsche Exchange Court 7" but "Court 1" doesn't match
+// "Etruscan Court 10". If none is free it takes the first one listed, or nothing if
+// onlyPreferred is set.
+export function pickCourt(courts, preferred = [], onlyPreferred = false) {
+  for (const wanted of preferred) {
+    const match = courts.find((name) => name === wanted || name.endsWith(` ${wanted}`));
+    if (match) return match;
+  }
+  if (onlyPreferred && preferred.length) return null;
+  return courts[0] ?? null;
+}
+
 export async function snapshot(page, outDir, name) {
   try {
     await page.screenshot({ path: `${outDir}/${name}.png`, fullPage: true });
@@ -148,7 +161,7 @@ async function openWizard(page, { startTime, endTime }) {
 // Opens the court list for `date` (YYYY-MM-DD) and returns a handle for a court
 // whose block is exactly startTime-endTime, or null if there isn't one (or the
 // date isn't open yet). Throws BookingLimitError if the daily limit is used up.
-export async function findSlot(page, { date, startTime, endTime }, outDir) {
+export async function findSlot(page, { date, startTime, endTime, preferredCourts, onlyPreferred }, outDir) {
   await openWizard(page, { startTime, endTime });
   const panel = wizard(page);
 
@@ -171,14 +184,15 @@ export async function findSlot(page, { date, startTime, endTime }, outDir) {
 
   const wantedTime = `${cardTime(startTime)} - ${cardTime(endTime)}`;
   const wantedDate = cardDate(date);
+  const courts = [];
   for (const card of await panel.locator('.trainers-card').all()) {
     const [cardTimeText, cardDateText] = (await card.locator('.scheduler-label').allInnerTexts()).map((t) => t.trim());
     if (cardTimeText === wantedTime && cardDateText === wantedDate) {
-      const court = (await card.locator('.appointment-details .scheduler-label-bold').first().innerText()).trim();
-      return { court, date, startTime, endTime };
+      courts.push((await card.locator('.appointment-details .scheduler-label-bold').first().innerText()).trim());
     }
   }
-  return null;
+  const court = pickCourt(courts, preferredCourts, onlyPreferred);
+  return court && { court, date, startTime, endTime };
 }
 
 // Continues from findSlot: selects the court and goes to the review screen, checking

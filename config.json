@@ -2,6 +2,8 @@
   "days": ["Mon", "Wed", "Fri"],
   "startTime": "09:30",
   "durationMinutes": 120,
+  "preferredCourts": [],
+  "onlyPreferred": false,
   "daysAhead": 10,
   "timezone": "America/Chicago",
   "opensAt": "00:00",

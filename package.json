@@ -11,6 +11,7 @@
     "dry-run:local": "node --env-file=.env src/book.js --dry-run --no-wait --headed"
   },
   "dependencies": {
+    "nodemailer": "10.3.1",
     "playwright": "1.48.2"
   }
 }
