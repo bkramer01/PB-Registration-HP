@@ -1,0 +1,15 @@
+{
+  "name": "pb-registration-hp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Auto-books pickleball court time at Club Pickle & Padel (Highland Park) on Plan2Play.",
+  "type": "module",
+  "scripts": {
+    "book": "node src/book.js",
+    "dry-run": "node src/book.js --dry-run",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "playwright": "1.48.2"
+  }
+}

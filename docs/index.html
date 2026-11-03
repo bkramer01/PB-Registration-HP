@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pickleball Booker Settings</title>
+<style>
+  :root { --bg:#f7f7f4; --card:#fff; --ink:#1d2321; --muted:#5f6b66; --line:#d9ddd8; --accent:#1f7a55; --accent-ink:#fff; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#141816; --card:#1d2321; --ink:#e9eeeb; --muted:#9aa8a1; --line:#33403a; --accent:#4fbf8b; --accent-ink:#0d1411; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, -apple-system, Segoe UI, sans-serif; }
+  main { max-width:640px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { font-size:1.5rem; margin:0 0 4px; }
+  p.sub { color:var(--muted); margin:0 0 24px; }
+  section { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:16px; }
+  h2 { font-size:1.05rem; margin:0 0 12px; }
+  .days { display:flex; gap:8px; flex-wrap:wrap; }
+  .days label { border:1px solid var(--line); border-radius:999px; padding:6px 14px; cursor:pointer; user-select:none; }
+  .days input { display:none; }
+  .days input:checked + span { color:var(--accent); font-weight:600; }
+  .days label:has(input:checked) { border-color:var(--accent); }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  label.f { display:block; font-size:.9rem; color:var(--muted); }
+  input[type=time], select { width:100%; margin-top:4px; padding:8px; font:inherit; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:8px; }
+  pre { background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:12px; overflow-x:auto; font-size:.85rem; margin:12px 0; }
+  .btns { display:flex; gap:8px; flex-wrap:wrap; }
+  a.btn, button { display:inline-block; padding:9px 14px; border-radius:8px; border:1px solid var(--accent); background:var(--accent); color:var(--accent-ink); font:inherit; font-weight:600; text-decoration:none; cursor:pointer; }
+  a.btn.alt, button.alt { background:transparent; color:var(--accent); }
+  ol { padding-left:20px; margin:0; } li { margin-bottom:6px; }
+  .muted { color:var(--muted); font-size:.9rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Pickleball Booker</h1>
+  <p class="sub">Club Pickle &amp; Padel, Highland Park. Books a court automatically at midnight, 10 days ahead.</p>
+
+  <section>
+    <h2>1. Pick days and time</h2>
+    <div class="days" id="days"></div>
+    <div class="row" style="margin-top:14px">
+      <label class="f">Start time<input type="time" id="start" value="09:30" step="1800"></label>
+      <label class="f">Length
+        <select id="dur"><option value="60">1 hour</option><option value="90">1.5 hours</option><option value="120" selected>2 hours</option></select>
+      </label>
+    </div>
+  </section>
+
+  <section>
+    <h2>2. Save to GitHub</h2>
+    <p class="muted">Copy these settings, open the settings file on GitHub, replace everything in it, and click "Commit changes".</p>
+    <pre id="out"></pre>
+    <div class="btns">
+      <button id="copy">Copy settings</button>
+      <a class="btn alt" id="edit" target="_blank" rel="noopener">Open settings file</a>
+    </div>
+  </section>
+
+  <section>
+    <h2>3. Test it</h2>
+    <p class="muted">Open the workflow, click "Run workflow", and leave "Dry run" ticked. It logs in and finds the court without reserving it.</p>
+    <div class="btns"><a class="btn alt" id="run" target="_blank" rel="noopener">Run a test</a></div>
+  </section>
+
+  <section>
+    <h2>Using your own login</h2>
+    <ol>
+      <li>Make your own copy of this project on GitHub (ask Brad for access, then click "Use this template" or "Fork").</li>
+      <li>In your copy, go to <a id="secrets" target="_blank" rel="noopener">Settings, then Secrets</a> and add <code>PLAN2PLAY_USERNAME</code> and <code>PLAN2PLAY_PASSWORD</code>.</li>
+      <li>For email results, also add <code>MAIL_TO</code>, <code>SMTP_USERNAME</code> (a Gmail address) and <code>SMTP_PASSWORD</code> (a Gmail app password).</li>
+      <li>Open the Actions tab once and enable workflows. Then use the steps above in your copy.</li>
+    </ol>
+  </section>
+</main>
+<script>
+  // Work out which repo this page belongs to (GitHub Pages: owner.github.io/repo/).
+  const params = new URLSearchParams(location.search);
+  let repo = params.get('repo') || 'bkramer01/PB-Registration-HP';
+  if (location.hostname.endsWith('.github.io')) {
+    const owner = location.hostname.split('.')[0];
+    const name = location.pathname.split('/').filter(Boolean)[0];
+    if (name) repo = `${owner}/${name}`;
+  }
+  const gh = `https://github.com/${repo}`;
+  document.getElementById('edit').href = `${gh}/edit/main/config.json`;
+  document.getElementById('run').href = `${gh}/actions/workflows/book.yml`;
+  document.getElementById('secrets').href = `${gh}/settings/secrets/actions`;
+
+  const ALL = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const chosen = new Set(['Mon', 'Wed', 'Fri']);
+  const daysEl = document.getElementById('days');
+  ALL.forEach((d) => {
+    const l = document.createElement('label');
+    l.innerHTML = `<input type="checkbox" value="${d}" ${chosen.has(d) ? 'checked' : ''}><span>${d}</span>`;
+    daysEl.appendChild(l);
+  });
+
+  function render() {
+    const days = [...daysEl.querySelectorAll('input:checked')].map((i) => i.value);
+    const cfg = {
+      days,
+      startTime: document.getElementById('start').value || '09:30',
+      durationMinutes: Number(document.getElementById('dur').value),
+      daysAhead: 10,
+      timezone: 'America/Chicago',
+      opensAt: '00:00',
+      retryMinutes: 10,
+    };
+    document.getElementById('out').textContent = JSON.stringify(cfg, null, 2) + '\n';
+  }
+  document.addEventListener('input', render);
+  document.getElementById('copy').onclick = async (e) => {
+    try { await navigator.clipboard.writeText(document.getElementById('out').textContent); e.target.textContent = 'Copied'; }
+    catch { e.target.textContent = 'Select the text and copy it'; }
+    setTimeout(() => (e.target.textContent = 'Copy settings'), 2000);
+  };
+  render();
+
+  // Load the current settings from the repo if it's public.
+  fetch(`https://raw.githubusercontent.com/${repo}/main/config.json`).then((r) => r.ok ? r.json() : null).then((c) => {
+    if (!c) return;
+    daysEl.querySelectorAll('input').forEach((i) => (i.checked = c.days.includes(i.value)));
+    document.getElementById('start').value = c.startTime;
+    document.getElementById('dur').value = String(c.durationMinutes);
+    render();
+  }).catch(() => {});
+</script>
+</body>
+</html>

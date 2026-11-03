@@ -1,0 +1,9 @@
+{
+  "days": ["Mon", "Wed", "Fri"],
+  "startTime": "09:30",
+  "durationMinutes": 120,
+  "daysAhead": 10,
+  "timezone": "America/Chicago",
+  "opensAt": "00:00",
+  "retryMinutes": 10
+}
