@@ -4,9 +4,27 @@ Books a court at Club Pickle & Padel (Highland Park) on Plan2Play every night at
 midnight Central, 10 days ahead, for the days in `config.json` (default: Mon, Wed,
 Fri, 9:30 to 11:30 a.m.). Runs on GitHub Actions, so nothing needs to stay on.
 
-> **Status:** login, scheduling, email and settings are built. The court-sheet and
-> reserve steps in `src/plan2play.js` still need mapping to the real site, so a run
-> currently stops after login with a "not-mapped" result and screenshots.
+> **Status:** the whole flow is mapped and tested in dry runs, but real bookings are
+> **off**. A run stays a dry run unless `ALLOW_REAL_BOOKING=true` is set, because a
+> booking can carry late-cancel and no-show fees. The final submit has never been
+> run, so the confirmation step is untested.
+>
+> **Cloudflare:** Plan2Play's security check blocks cloud servers and headless
+> browsers, so the GitHub Actions schedule below won't get through. A normal
+> visible browser (`--headed`) on a home PC did get through.
+
+## How booking works on the site
+
+Profile, Bookings, New Booking, then a four-step wizard: Resource; Pickleball Courts,
+location, duration, date and time; a review screen; confirmation. Things the code
+relies on:
+
+- A time button doesn't mean a court is free. Picking a full time lists the next
+  openings instead, so only a court card showing the exact time counts.
+- The button that submits the booking on the review screen is labelled "Next".
+- The site allows 2 hours of pickleball courts a day, so a date you already hold
+  ends with a `limit-reached` result.
+- The booking stops if the plan offered isn't free.
 
 ## How the timing works
 
@@ -42,7 +60,9 @@ Locally:
 
 ```sh
 npm install && npx playwright install chromium
-PLAN2PLAY_USERNAME=... PLAN2PLAY_PASSWORD=... npm run dry-run -- --date 2026-11-16
+# put PLAN2PLAY_USERNAME and PLAN2PLAY_PASSWORD in .env (gitignored), then:
+npm run dry-run:local -- --date 2026-11-16
+npm run dry-run:local -- --date 2026-11-13 --time 14:00   # any other start time
 npm test   # date logic
 ```
 

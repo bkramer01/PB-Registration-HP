@@ -7,7 +7,8 @@
   "scripts": {
     "book": "node src/book.js",
     "dry-run": "node src/book.js --dry-run",
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "dry-run:local": "node --env-file=.env src/book.js --dry-run --no-wait --headed"
   },
   "dependencies": {
     "playwright": "1.48.2"

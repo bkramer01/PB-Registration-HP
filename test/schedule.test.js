@@ -47,3 +47,18 @@ test('run window keeps the right cron and drops the other', () => {
   // Delayed start a few minutes after midnight still runs
   assert.equal(inRunWindow(new Date('2026-11-06T06:12:00Z'), config), true);
 });
+
+import { buttonTime, cardTime, cardDate, durationLabel } from '../src/plan2play.js';
+test('times and dates match the wording on the Plan2Play wizard', () => {
+  assert.equal(buttonTime('09:30'), '9:30 AM');
+  assert.equal(buttonTime('12:00'), '12 PM');
+  assert.equal(buttonTime('14:00'), '2 PM');
+  assert.equal(cardTime('09:30'), '9:30 AM');
+  assert.equal(cardTime('14:00'), '2:00 PM');
+  assert.equal(cardTime('00:30'), '12:30 AM');
+  assert.equal(cardDate('2026-11-13'), 'Friday, November 13th 2026');
+  assert.equal(cardDate('2026-12-01'), 'Tuesday, December 1st 2026');
+  assert.equal(cardDate('2026-11-22'), 'Sunday, November 22nd 2026');
+  assert.equal(durationLabel('09:30', '11:30'), '2 hr');
+  assert.throws(() => durationLabel('09:30', '12:30'));
+});
