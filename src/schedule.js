@@ -46,11 +46,32 @@ export function bookingDay(instant, config) {
   return lead > 0 && lead <= 60 ? addDays(today, 1) : today;
 }
 
+// The days to book and their start times. Older settings have one startTime for a list of days.
+export function slotsFor(config) {
+  return config.slots ?? (config.days ?? []).map((day) => ({ day, start: config.startTime }));
+}
+
+export function startTimeFor(weekday, config) {
+  return slotsFor(config).find((slot) => slot.day === weekday)?.start;
+}
+
+function targetOn(date, config) {
+  const weekday = weekdayOf(date);
+  return { date: isoDate(date), weekday, wanted: slotsFor(config).some((slot) => slot.day === weekday) };
+}
+
 // Works out what to book. Returns { date, weekday, wanted }.
 export function targetFor(instant, config) {
-  const date = addDays(bookingDay(instant, config), config.daysAhead);
-  const weekday = weekdayOf(date);
-  return { date: isoDate(date), weekday, wanted: config.days.includes(weekday) };
+  return targetOn(addDays(bookingDay(instant, config), config.daysAhead), config);
+}
+
+// The furthest-out date that is both open and wanted, for test runs on nights with nothing to book.
+export function latestOpenTarget(instant, config) {
+  for (let back = 0; back <= config.daysAhead; back++) {
+    const target = targetOn(addDays(bookingDay(instant, config), config.daysAhead - back), config);
+    if (target.wanted) return target;
+  }
+  return targetFor(instant, config);
 }
 
 // Milliseconds until the opening time on `bookingDay` (0 if already open).

@@ -1,6 +1,9 @@
 {
-  "days": ["Mon", "Wed", "Fri"],
-  "startTime": "09:30",
+  "slots": [
+    { "day": "Mon", "start": "09:30" },
+    { "day": "Wed", "start": "09:30" },
+    { "day": "Fri", "start": "09:30" }
+  ],
   "durationMinutes": 120,
   "preferredCourts": [],
   "onlyPreferred": false,

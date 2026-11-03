@@ -8,7 +8,7 @@
     "book": "node src/book.js",
     "dry-run": "node src/book.js --dry-run",
     "test": "node --test test/*.test.js",
-    "dry-run:local": "node --env-file=.env src/book.js --dry-run --no-wait --headed"
+    "dry-run:local": "node --env-file=.env src/book.js --dry-run --no-wait --headed --latest-open"
   },
   "dependencies": {
     "nodemailer": "10.3.1",

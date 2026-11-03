@@ -28,17 +28,13 @@ relies on:
 
 ## Running on a Windows PC
 
-You need [Node.js](https://nodejs.org) and a copy of this project. In its folder, run:
+Double-click `setup.cmd`. It installs Node.js if needed, the packages and the browser,
+creates `.env`, and sets up the nightly task. You can run it again safely: it never
+changes an existing `.env`. To remove the task, double-click `uninstall.cmd`.
 
-```sh
-npm install
-npx playwright install chromium
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/register-task.ps1
-```
-
-That creates a task called "Pickleball Booker" in Windows Task Scheduler. It runs at
-11:45 p.m. every night, logs in, waits for midnight, and keeps trying for up to
-`retryMinutes`. On nights with nothing to book it exits straight away.
+The task is called "Pickleball Booker" in Windows Task Scheduler. It runs at 11:45 p.m.
+every night, logs in, waits for midnight, and keeps trying for up to `retryMinutes`. On
+nights with nothing to book it exits straight away.
 
 For it to work:
 
@@ -85,13 +81,14 @@ Repo Settings, then Secrets and variables, then Actions:
 
 Email is sent only on days that try a booking (not on skipped days).
 
-## Changing days or time
+## Changing days, times or courts
 
-Open `docs/index.html` (the settings page) in a browser, pick days, time and courts,
-and paste the result into `config.json`. Or edit `config.json` directly:
+Double-click `settings.cmd`. It opens a page showing your current settings: pick each
+day's start time and your preferred courts, then click Save settings. Or edit
+`config.json` directly:
 
-- `days`, `startTime`, `durationMinutes`: what to book. The site offers 30, 60, 90 or
-  120 minutes.
+- `slots`: the days to book and each day's start time, such as
+  `{ "day": "Mon", "start": "09:30" }`. Courts are booked for 2 hours.
 - `preferredCourts`: courts to try in order, such as `["Court 7", "Court 4"]`. If none of
   them is free, or the list is empty, the first free court is booked.
 - `onlyPreferred`: set to `true` to book nothing rather than another court.
@@ -102,17 +99,33 @@ Audi Exchange Court 8, Chevy Exchange Court 9 and Etruscan Court 10.
 
 ## Testing
 
-Log in and find the court without reserving it:
+Double-click `dry-run.cmd`, or use the commands below. They log in and look for the court
+without reserving it:
 
 ```sh
 npm install && npx playwright install chromium
 # put PLAN2PLAY_USERNAME and PLAN2PLAY_PASSWORD in .env (gitignored), then:
+npm run dry-run:local
 npm run dry-run:local -- --date 2026-11-16
 npm run dry-run:local -- --date 2026-11-13 --time 14:00   # any other start time
 npm test   # date logic
 ```
 
-## Sharing with the group organizer
+## Share with a friend
 
-Give them access to this repo. To book under their own login, they follow "Running on
-a Windows PC" on their own PC, with their own `.env` and `config.json`.
+Double-click `share.cmd`. It makes `dist/PB-Registration-HP.zip`, which leaves out your
+`.env`, logs, screenshots and installed packages. Don't zip the folder by hand, because
+that would include your passwords. Your `config.json` is included, so your friend starts
+from your settings.
+
+Your friend then:
+
+1. Unzips it somewhere permanent, such as Documents, and double-clicks `setup.cmd`.
+2. Fills in their own Plan2Play login in the `.env` window that opens.
+3. Double-clicks `settings.cmd` to choose days, times and courts.
+4. Double-clicks `dry-run.cmd` to test. It books nothing.
+5. Changes `ALLOW_REAL_BOOKING` to `true` in `.env` when ready.
+
+Their PC must be on or asleep, not shut down, and logged in on booking nights. Bookings
+go on their account, and the site's fees and daily limit apply to them. The booker stops
+without booking if the plan offered isn't free, which depends on their membership.

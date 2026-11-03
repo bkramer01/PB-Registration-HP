@@ -4,6 +4,7 @@
 //   node src/book.js --date 2026-11-14   override the target date (for testing)
 //   node src/book.js --time 14:00        override the start time (for testing)
 //   node src/book.js --headed    show the browser
+//   node src/book.js --latest-open       if tonight has nothing to book, use the furthest open date that does
 //   node src/book.js --no-wait   don't wait for the opening time
 //   node src/book.js --scheduled exit quietly unless it's near opening time (used by the cron)
 //
@@ -12,7 +13,7 @@
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
-import { targetFor, msUntilOpen, endTime, weekdayOf, inRunWindow } from './schedule.js';
+import { targetFor, latestOpenTarget, slotsFor, startTimeFor, msUntilOpen, endTime, weekdayOf, inRunWindow } from './schedule.js';
 import { login, findSlot, reserve, BookingLimitError } from './plan2play.js';
 import { notify } from './notify.js';
 
@@ -39,9 +40,9 @@ async function main() {
     const [y, m, d] = overrideDate.split('-').map(Number);
     target = { date: overrideDate, weekday: weekdayOf({ year: y, month: m, day: d }), wanted: true };
   } else {
-    target = targetFor(new Date(), config);
+    target = flag('--latest-open') ? latestOpenTarget(new Date(), config) : targetFor(new Date(), config);
   }
-  const startTime = opt('--time') || config.startTime;
+  const startTime = opt('--time') || startTimeFor(target.weekday, config) || slotsFor(config)[0]?.start;
   const slot = {
     date: target.date,
     startTime,
@@ -52,7 +53,7 @@ async function main() {
   const label = `${target.weekday} ${slot.date} ${slot.startTime}-${slot.endTime}`;
 
   if (!target.wanted) {
-    return finish({ status: 'skipped', label, message: `${target.weekday} isn't one of the booking days (${config.days.join(', ')}).` });
+    return finish({ status: 'skipped', label, message: `${target.weekday} isn't one of the booking days (${slotsFor(config).map((s) => s.day).join(', ')}).` });
   }
 
   const username = process.env.PLAN2PLAY_USERNAME;
