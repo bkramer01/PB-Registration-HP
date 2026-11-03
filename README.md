@@ -4,10 +4,10 @@ Books a court at Club Pickle & Padel (Highland Park) on Plan2Play every night at
 midnight Central, 10 days ahead, for the days in `config.json` (default: Mon, Wed,
 Fri, 9:30 to 11:30 a.m.). Runs on a Windows PC, which has to be on and logged in.
 
-> **Status:** the whole flow is mapped and tested in dry runs, but real bookings are
-> **off**. A run stays a dry run unless `ALLOW_REAL_BOOKING=true` is set, because a
-> booking can carry late-cancel and no-show fees. The final submit has never been
-> run, so the confirmation step is untested.
+> **Status:** the whole flow works, including one real test booking on 2026-11-03. Real
+> bookings are still **off** by default: a run stays a dry run unless
+> `ALLOW_REAL_BOOKING=true` is set, because a booking can carry late-cancel and no-show
+> fees. A midnight run hasn't happened yet.
 >
 > **Cloudflare:** Plan2Play's security check blocks cloud servers and headless
 > browsers, so the GitHub Actions schedule won't get through. A normal visible
