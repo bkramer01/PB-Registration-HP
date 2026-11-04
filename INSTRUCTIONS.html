@@ -140,12 +140,12 @@
     <div class="num">3</div>
     <div class="step-body">
       <h2>Add your Plan2Play login</h2>
-      <p>In the Notepad window, type your login straight after the <code>=</code> on the first two lines:</p>
+      <p>In the Notepad window, type your Club Pickle &amp; Padel login id and password straight after each <code>=</code> sign, with no spaces or quotes:</p>
       <pre>PLAN2PLAY_USERNAME=you@example.com
 PLAN2PLAY_PASSWORD=your-password</pre>
       <p>Leave <code>ALLOW_REAL_BOOKING=false</code> as it is for now. Save with <kbd>Ctrl</kbd> + <kbd>S</kbd>, but keep Notepad open if you're doing step 4.</p>
       <ul>
-        <li>If your password contains a <code>#</code>, put it in double quotes: <code>PLAN2PLAY_PASSWORD="abc#123"</code></li>
+        <li>One exception: if your password contains a <code>#</code>, put it in double quotes, like <code>PLAN2PLAY_PASSWORD="abc#123"</code>. Otherwise the app only reads the part before the <code>#</code>.</li>
         <li>This file stays on your PC. Don't send it to anyone, because it holds your password.</li>
         <li>To open it again later, right-click <code>.env</code>, choose <strong>Open with</strong>, then <strong>Notepad</strong>.</li>
       </ul>
@@ -160,7 +160,7 @@ PLAN2PLAY_PASSWORD=your-password</pre>
       <ol>
         <li>Sign in to your Gmail and go to <a href="https://myaccount.google.com/apppasswords">myaccount.google.com/apppasswords</a>. If the page isn't available, turn on 2-Step Verification first.</li>
         <li>Create an app password. Any name is fine. Google shows you a 16-letter code.</li>
-        <li>In the same Notepad window, fill in these lines, then save and close:</li>
+        <li>For email alerts (optional), add to the .env file as well, then save and close:</li>
       </ol>
       <pre>SMTP_USERNAME=your.address@gmail.com
 SMTP_PASSWORD=the16lettercode
