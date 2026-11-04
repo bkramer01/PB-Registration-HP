@@ -119,8 +119,8 @@ npm test   # date logic
 
 Double-click `share.cmd`. It makes `dist/PB-Registration-HP.zip`, which leaves out your
 `.env`, logs, screenshots and installed packages. Don't zip the folder by hand, because
-that would include your passwords. Your `config.json` is included, so your friend starts
-from your settings.
+that would include your passwords. Your friend starts from the default settings in git
+(Mon, Wed, Fri at 9:30 a.m.), not your own.
 
 Your friend then:
 

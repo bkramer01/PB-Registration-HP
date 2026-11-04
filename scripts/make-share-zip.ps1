@@ -1,5 +1,6 @@
 # Builds dist\PB-Registration-HP.zip to send to a friend. It holds only files tracked by git,
 # which leaves out .env (your passwords), logs, screenshots and installed packages.
+# config.json comes from git too, so your friend gets the defaults, not your own settings.
 
 $root = Split-Path $PSScriptRoot -Parent
 Set-Location $root
@@ -16,6 +17,7 @@ foreach ($file in $files) {
   New-Item -ItemType Directory -Force (Split-Path $target -Parent) | Out-Null
   Copy-Item -LiteralPath (Join-Path $root $file) $target
 }
+git show HEAD:config.json | Set-Content -LiteralPath (Join-Path $stage 'config.json') -Encoding Ascii
 
 $dist = Join-Path $root 'dist'
 New-Item -ItemType Directory -Force $dist | Out-Null
