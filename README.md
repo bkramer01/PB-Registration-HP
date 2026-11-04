@@ -2,7 +2,9 @@
 
 Books a court at Club Pickle & Padel (Highland Park) on Plan2Play every night at
 midnight Central, 10 days ahead, for the days in `config.json` (default: Mon, Wed,
-Fri, 9:30 to 11:30 a.m.). Runs on a Windows PC, which has to be on and logged in.
+Fri, 9:30 to 11:30 a.m.). Runs on a Windows PC, which has to be awake and logged in.
+
+**Setting it up? Open `INSTRUCTIONS.html` for the step-by-step guide.**
 
 > **Status:** the whole flow works, including one real test booking on 2026-11-03. Real
 > bookings are still **off** by default: a run stays a dry run unless
@@ -38,8 +40,10 @@ nights with nothing to book it exits straight away.
 
 For it to work:
 
-- **The PC must be on or asleep, not shut down.** The task wakes a sleeping PC, but only
-  if wake timers are allowed in Windows power options, so test this once.
+- **The PC must be awake, not asleep.** Plug it in and set its sleep time when plugged in
+  to Never. The task asks Windows to wake the PC, but don't rely on that: on a PC with
+  Modern Standby it stayed asleep at 11:45 p.m., and Windows refused the task when it
+  briefly woke at 3:36 a.m. (`0x800710E0`).
 - **You must be logged in.** A locked screen should be fine. A browser window opens
   during the run, because Cloudflare stops hidden browsers.
 
@@ -120,12 +124,9 @@ from your settings.
 
 Your friend then:
 
-1. Unzips it somewhere permanent, such as Documents, and double-clicks `setup.cmd`.
-2. Fills in their own Plan2Play login in the `.env` window that opens.
-3. Double-clicks `settings.cmd` to choose days, times and courts.
-4. Double-clicks `dry-run.cmd` to test. It books nothing.
-5. Changes `ALLOW_REAL_BOOKING` to `true` in `.env` when ready.
+1. Unzips it somewhere permanent, such as Documents.
+2. Opens `INSTRUCTIONS.html` and follows the steps.
 
-Their PC must be on or asleep, not shut down, and logged in on booking nights. Bookings
+Their PC must be awake and logged in on booking nights. Bookings
 go on their account, and the site's fees and daily limit apply to them. The booker stops
 without booking if the plan offered isn't free, which depends on their membership.

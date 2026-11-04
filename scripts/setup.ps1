@@ -54,5 +54,6 @@ if ($isNew) {
 Write-Output ' 2. Double-click settings.cmd to choose days, times and courts.'
 Write-Output ' 3. Double-click dry-run.cmd to test. It does not book anything.'
 Write-Output ' 4. When you are ready to really book, change ALLOW_REAL_BOOKING to true in .env.'
-Write-Output ' Keep this PC on or asleep, not shut down, and stay logged in on booking nights.'
+Write-Output ' On booking nights keep this PC awake and plugged in, and stay logged in. Set its sleep time to Never.'
+Write-Output ' INSTRUCTIONS.html has every step.'
 if ($isNew) { Start-Process notepad.exe $envFile }
