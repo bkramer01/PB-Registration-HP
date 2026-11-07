@@ -1,4 +1,4 @@
-// Tells the user how a run on their PC went: a result email and a Windows notification.
+// Tells the user how a run on their computer went: a result email and a Windows or Mac notification.
 // A failure here is only logged, so it can never hide the booking result.
 
 import { execFile } from 'node:child_process';
@@ -37,9 +37,17 @@ async function showToast(result) {
   });
 }
 
+// The text is passed as arguments, so nothing in it is treated as AppleScript.
+const MAC_SCRIPT = 'on run argv\n display notification (item 2 of argv) with title (item 1 of argv)\nend run';
+
+async function showMacNotification(result) {
+  if (process.platform !== 'darwin') return;
+  await promisify(execFile)('osascript', ['-e', MAC_SCRIPT, `Pickleball: ${result.status}`, `${result.label}\n${result.message}`]);
+}
+
 export async function notify(result, text) {
   if (result.status === 'skipped') return; // nights with nothing to book stay quiet
-  for (const send of [() => sendEmail(result, text), () => showToast(result)]) {
+  for (const send of [() => sendEmail(result, text), () => showToast(result), () => showMacNotification(result)]) {
     try {
       await send();
     } catch (err) {

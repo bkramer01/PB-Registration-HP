@@ -1,9 +1,9 @@
 // Serves the settings page on this PC only, so it can load and save config.json.
-// Started by settings.cmd. Pass --no-open to skip opening the browser.
+// Started by settings.cmd (Windows) or settings.command (Mac). Pass --no-open to skip opening the browser.
 
 import { createServer } from 'node:http';
 import { readFile, writeFile } from 'node:fs/promises';
-import { exec } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { applySettings } from '../src/settings.js';
 
 const CONFIG = new URL('../config.json', import.meta.url);
@@ -39,5 +39,8 @@ server.listen(0, '127.0.0.1', () => {
   const url = `http://127.0.0.1:${server.address().port}/`;
   console.log(`Settings page: ${url}`);
   console.log('Close this window when you are done.');
-  if (!process.argv.includes('--no-open')) exec(`start "" "${url}"`);
+  if (process.argv.includes('--no-open')) return;
+  if (process.platform === 'darwin') execFile('open', [url]);
+  else if (process.platform === 'win32') execFile('cmd', ['/c', 'start', '', url]);
+  else execFile('xdg-open', [url], () => {});
 });
