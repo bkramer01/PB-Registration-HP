@@ -1,0 +1,88 @@
+name: Book pickleball court
+
+on:
+  schedule:
+    # Booking opens at midnight Central. GitHub cron is UTC and can start late,
+    # so we start ~30 minutes early, log in, and wait. Two entries cover CST and
+    # CDT; the script drops whichever one lands at the wrong hour.
+    - cron: '30 4 * * *'   # 11:30 pm CDT (summer)
+    - cron: '30 5 * * *'   # 11:30 pm CST (winter)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (log in and find the slot, but do not reserve)'
+        type: boolean
+        default: true
+      date:
+        description: 'Date to try (YYYY-MM-DD). Leave blank for 10 days out.'
+        type: string
+        required: false
+
+concurrency:
+  group: booking
+  cancel-in-progress: false
+
+jobs:
+  book:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      MAIL_TO: ${{ secrets.MAIL_TO }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+
+      - name: Book
+        id: book
+        env:
+          PLAN2PLAY_USERNAME: ${{ secrets.PLAN2PLAY_USERNAME }}
+          PLAN2PLAY_PASSWORD: ${{ secrets.PLAN2PLAY_PASSWORD }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
+          TARGET_DATE: ${{ inputs.date }}
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            node src/book.js --scheduled
+          else
+            node src/book.js --no-wait
+          fi
+
+      - name: Summarize
+        if: always()
+        id: summary
+        run: |
+          if [ -f out/result.json ]; then
+            cat out/result.md >> "$GITHUB_STEP_SUMMARY"
+            echo -e "\n[Run details and screenshots](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> out/result.md
+            echo "status=$(jq -r .status out/result.json)" >> "$GITHUB_OUTPUT"
+            echo "label=$(jq -r .label out/result.json)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Save screenshots
+        if: always() && hashFiles('out/**') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: booking-${{ github.run_id }}
+          path: out/
+          retention-days: 14
+
+      - name: Email result
+        # Only email when something happened (not on skipped days), and only if mail is set up.
+        if: always() && steps.summary.outputs.status != '' && steps.summary.outputs.status != 'skipped' && env.MAIL_TO != ''
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          from: Pickleball Booker <${{ secrets.SMTP_USERNAME }}>
+          to: ${{ secrets.MAIL_TO }}
+          subject: 'Pickleball: ${{ steps.summary.outputs.status }} - ${{ steps.summary.outputs.label }}'
+          html_body: file://out/result.md
+          convert_markdown: true

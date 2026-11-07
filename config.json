@@ -1,0 +1,14 @@
+{
+  "slots": [
+    { "day": "Mon", "start": "09:30" },
+    { "day": "Wed", "start": "09:30" },
+    { "day": "Fri", "start": "09:30" }
+  ],
+  "durationMinutes": 120,
+  "preferredCourts": [],
+  "onlyPreferred": false,
+  "daysAhead": 10,
+  "timezone": "America/Chicago",
+  "opensAt": "00:00",
+  "retryMinutes": 10
+}
