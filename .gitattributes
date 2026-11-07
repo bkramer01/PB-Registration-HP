@@ -1,0 +1,3 @@
+# The Mac scripts must keep Unix line endings, even when the zip is made on Windows.
+*.sh text eol=lf
+*.command text eol=lf

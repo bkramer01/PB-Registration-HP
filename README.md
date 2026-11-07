@@ -2,9 +2,10 @@
 
 Books a court at Club Pickle & Padel (Highland Park) on Plan2Play every night at
 midnight Central, 10 days ahead, for the days in `config.json` (default: Mon, Wed,
-Fri, 9:30 to 11:30 a.m.). Runs on a Windows PC, which has to be awake and logged in.
+Fri, 9:30 to 11:30 a.m.). Runs on a Windows PC or a Mac, which has to be awake and logged in.
 
-**Setting it up? Open `INSTRUCTIONS.html` for the step-by-step guide.**
+**Setting it up? Open `INSTRUCTIONS.html` (Windows) or `INSTRUCTIONS-MAC.html` (Mac) for the
+step-by-step guide.**
 
 > **Status:** the whole flow works, including one real test booking on 2026-11-03. Real
 > bookings are still **off** by default: a run stays a dry run unless
@@ -57,9 +58,32 @@ Put these in a `.env` file in this folder (it is gitignored):
 | `SMTP_PASSWORD` | A Gmail [app password](https://myaccount.google.com/apppasswords) |
 | `MAIL_TO` | Where to send results |
 
+## Running on a Mac
+
+Move the folder into your home folder first (not Documents, Desktop, Downloads or iCloud
+Drive, which macOS keeps nightly jobs out of). Then, the first time, run `bash setup.command`
+in Terminal, because macOS blocks double-clicking scripts from a downloaded zip. Setup
+installs Node.js if needed (with Homebrew if you have it, or the nodejs.org installer), the
+packages and the browser, creates `.env`, and sets up the nightly job. It also clears the
+download block, so the other `.command` files open with a double-click afterwards.
+
+The job is a LaunchAgent, `~/Library/LaunchAgents/com.pickleball.booker.plist`, which runs
+`scripts/mac/run-booker.sh` at 11:45 p.m. every night. It works like the Windows task:
+
+- **The Mac must be awake with the lid open.** Setup offers to wake it at 11:40 p.m. each
+  night (`pmset repeat wakeorpoweron`, which needs your password and replaces any other
+  repeating wake schedule). Once a run starts, `caffeinate` keeps the Mac awake until it ends.
+  If the Mac was asleep, launchd runs the job when it wakes, and the booker exits because
+  it's outside the run window.
+- **You must be logged in.** A LaunchAgent runs only in your login session.
+
+`status.command` shows whether the job is set up and lists the recent runs, `uninstall.command`
+removes it, and `settings.command`, `dry-run.command` and `share.command` do the same as the
+Windows `.cmd` files. Results show as Mac notifications through `osascript`.
+
 ### Notifications
 
-Every night that tries a booking sends an email to `MAIL_TO` and shows a Windows
+Every night that tries a booking sends an email to `MAIL_TO` and shows a Windows or Mac
 notification, whether it worked or not. Nights with nothing to book stay quiet. The
 email needs all three mail settings. Details of each run are in `logs/booker.log`, and
 screenshots of the latest run are in `out/`.
@@ -87,7 +111,7 @@ Email is sent only on days that try a booking (not on skipped days).
 
 ## Changing days, times or courts
 
-Double-click `settings.cmd`. It opens a page showing your current settings: pick each
+Double-click `settings.cmd` (or `settings.command` on a Mac). It opens a page showing your current settings: pick each
 day's start time and your preferred courts, then click Save settings. Or edit
 `config.json` directly:
 
@@ -103,7 +127,7 @@ Audi Exchange Court 8, Chevy Exchange Court 9 and Etruscan Court 10.
 
 ## Testing
 
-Double-click `dry-run.cmd`, or use the commands below. They log in and look for the court
+Double-click `dry-run.cmd` (or `dry-run.command` on a Mac), or use the commands below. They log in and look for the court
 without reserving it:
 
 ```sh
@@ -117,16 +141,23 @@ npm test   # date logic
 
 ## Share with a friend
 
-Double-click `share.cmd`. It makes `dist/PB-Registration-HP.zip`, which leaves out your
-`.env`, logs, screenshots and installed packages. Don't zip the folder by hand, because
-that would include your passwords. Your friend starts from the default settings in git
-(Mon, Wed, Fri at 9:30 a.m.), not your own.
+Double-click `share.cmd` (or `share.command` on a Mac). It makes two zips in `dist/`:
+
+| Zip | For | Holds |
+| --- | --- | --- |
+| `PB-Registration-HP.zip` | a Windows PC | the shared code plus the Windows files (`.cmd`, `.ps1`, `INSTRUCTIONS.html`) |
+| `PB-Registration-HP-Mac.zip` | a Mac | the shared code plus the Mac files (`.command`, `scripts/mac/`, `INSTRUCTIONS-MAC.html`) |
+
+Both leave out your `.env`, logs, screenshots and installed packages. Don't zip the folder
+by hand, because that would include your passwords. Your friend starts from the default
+settings in git (Mon, Wed, Fri at 9:30 a.m.), not your own.
 
 Your friend then:
 
-1. Unzips it somewhere permanent, such as Documents.
-2. Opens `INSTRUCTIONS.html` and follows the steps.
+1. On Windows, unzips it somewhere permanent, such as Documents. On a Mac, moves the
+   unzipped folder into their home folder.
+2. Opens `INSTRUCTIONS.html` (Windows) or `INSTRUCTIONS-MAC.html` (Mac) and follows the steps.
 
-Their PC must be awake and logged in on booking nights. Bookings
+Their computer must be awake and logged in on booking nights. Bookings
 go on their account, and the site's fees and daily limit apply to them. The booker stops
 without booking if the plan offered isn't free, which depends on their membership.
