@@ -141,15 +141,22 @@ npm test   # date logic
 
 ## Share with a friend
 
-Double-click `share.cmd` (or `share.command` on a Mac). It makes `dist/PB-Registration-HP.zip`, which leaves out your
-`.env`, logs, screenshots and installed packages. Don't zip the folder by hand, because
-that would include your passwords. Your friend starts from the default settings in git
-(Mon, Wed, Fri at 9:30 a.m.), not your own.
+Double-click `share.cmd` (or `share.command` on a Mac). It makes two zips in `dist/`:
+
+| Zip | For | Holds |
+| --- | --- | --- |
+| `PB-Registration-HP.zip` | a Windows PC | the shared code plus the Windows files (`.cmd`, `.ps1`, `INSTRUCTIONS.html`) |
+| `PB-Registration-HP-Mac.zip` | a Mac | the shared code plus the Mac files (`.command`, `scripts/mac/`, `INSTRUCTIONS-MAC.html`) |
+
+Both leave out your `.env`, logs, screenshots and installed packages. Don't zip the folder
+by hand, because that would include your passwords. Your friend starts from the default
+settings in git (Mon, Wed, Fri at 9:30 a.m.), not your own.
 
 Your friend then:
 
-1. Unzips it somewhere permanent, such as Documents.
-2. Opens `INSTRUCTIONS.html` (or `INSTRUCTIONS-MAC.html` on a Mac) and follows the steps.
+1. On Windows, unzips it somewhere permanent, such as Documents. On a Mac, moves the
+   unzipped folder into their home folder.
+2. Opens `INSTRUCTIONS.html` (Windows) or `INSTRUCTIONS-MAC.html` (Mac) and follows the steps.
 
 Their computer must be awake and logged in on booking nights. Bookings
 go on their account, and the site's fees and daily limit apply to them. The booker stops

@@ -3,7 +3,7 @@
 
 import { createServer } from 'node:http';
 import { readFile, writeFile } from 'node:fs/promises';
-import { execFile } from 'node:child_process';
+import { exec, execFile } from 'node:child_process';
 import { applySettings } from '../src/settings.js';
 
 const CONFIG = new URL('../config.json', import.meta.url);
@@ -41,6 +41,5 @@ server.listen(0, '127.0.0.1', () => {
   console.log('Close this window when you are done.');
   if (process.argv.includes('--no-open')) return;
   if (process.platform === 'darwin') execFile('open', [url]);
-  else if (process.platform === 'win32') execFile('cmd', ['/c', 'start', '', url]);
-  else execFile('xdg-open', [url], () => {});
+  else exec(`start "" "${url}"`); // Windows, unchanged
 });
